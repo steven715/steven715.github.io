@@ -1,0 +1,195 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Pattern Language | Steven's Blog</title><meta name="author" content="Steven Hsu"><meta name="copyright" content="Steven Hsu"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Pattern Language風控系統設計原則本文件記錄了從風控系統重構經驗中提煉的設計原則。共 12 條 pattern，其中 11 條來自自身實踐，1 條來自主管指導。  結構設計層Pattern 1：分層不等於約束（你的） 分層解決的是「東西放哪裡」，不是「誰可以改什麼」。如果分層後還是要用人腦追蹤狀態變更，代表缺少的是寫入權的設計。  寫入一致性層Pattern 2：狀態寫入的三原則（你">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Pattern Language">
+<meta property="og:url" content="https://steven715.github.io/2026/01/20/pattern-language/index.html">
+<meta property="og:site_name" content="Steven&#39;s Blog">
+<meta property="og:description" content="Pattern Language風控系統設計原則本文件記錄了從風控系統重構經驗中提煉的設計原則。共 12 條 pattern，其中 11 條來自自身實踐，1 條來自主管指導。  結構設計層Pattern 1：分層不等於約束（你的） 分層解決的是「東西放哪裡」，不是「誰可以改什麼」。如果分層後還是要用人腦追蹤狀態變更，代表缺少的是寫入權的設計。  寫入一致性層Pattern 2：狀態寫入的三原則（你">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://steven715.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-01-20T14:41:40.000Z">
+<meta property="article:modified_time" content="2026-01-30T11:48:53.887Z">
+<meta property="article:author" content="Steven Hsu">
+<meta property="article:tag" content="軟體開發">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://steven715.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Pattern Language",
+  "url": "https://steven715.github.io/2026/01/20/pattern-language/",
+  "image": "https://steven715.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-01-20T14:41:40.000Z",
+  "dateModified": "2026-01-30T11:48:53.887Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Steven Hsu",
+      "url": "https://steven715.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://steven715.github.io/2026/01/20/pattern-language/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Pattern Language',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">標籤</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分類</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Steven's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Pattern Language</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Pattern Language</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2026-01-20T14:41:40.000Z" title="發表於 2026-01-20 22:41:40">2026-01-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-01-30T11:48:53.887Z" title="更新於 2026-01-30 19:48:53">2026-01-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%BB%9F%E9%AB%94%E9%96%8B%E7%99%BC/">軟體開發</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Pattern-Language"><a href="#Pattern-Language" class="headerlink" title="Pattern Language"></a>Pattern Language</h1><h2 id="風控系統設計原則"><a href="#風控系統設計原則" class="headerlink" title="風控系統設計原則"></a>風控系統設計原則</h2><p>本文件記錄了從風控系統重構經驗中提煉的設計原則。共 12 條 pattern，其中 11 條來自自身實踐，1 條來自主管指導。</p>
+<hr>
+<h2 id="結構設計層"><a href="#結構設計層" class="headerlink" title="結構設計層"></a>結構設計層</h2><p><strong>Pattern 1：分層不等於約束</strong>（你的）</p>
+<p>分層解決的是「東西放哪裡」，不是「誰可以改什麼」。如果分層後還是要用人腦追蹤狀態變更，代表缺少的是寫入權的設計。</p>
+<hr>
+<h2 id="寫入一致性層"><a href="#寫入一致性層" class="headerlink" title="寫入一致性層"></a>寫入一致性層</h2><p><strong>Pattern 2：狀態寫入的三原則</strong>（你的）</p>
+<p>每個可變狀態都有唯一的權威來源。原始資料與衍生資料要區分——衍生狀態只能被計算，不能被直接賦值。所有變更都該能回答「因為什麼事件」。</p>
+<p><strong>Pattern 3：一致性有兩層</strong>（你的）</p>
+<p>寫入權歸屬定義的是「誰能改」，但一致性還需要定義「改的邊界在哪」——哪些變更必須一起生效，中間狀態能不能被觀察到。</p>
+<hr>
+<h2 id="讀取一致性層"><a href="#讀取一致性層" class="headerlink" title="讀取一致性層"></a>讀取一致性層</h2><p><strong>Pattern 4：寫入與讀取是兩種一致性</strong>（你的）</p>
+<p>寫入一致性回答「誰能改」，讀取一致性回答「讀者看到的是哪個時間點的世界」。輪詢是一種 trade-off：用即時性換簡單性，前提是業務能接受那個延遲窗口。</p>
+<p><strong>Pattern 5：輪詢延遲的疊加</strong>（你的）</p>
+<p>兩個獨立輪詢的最大延遲是它們週期的總和，不是單一週期。如果 A 每 100ms 寫、B 每 100ms 讀，B 看到的資料最多可能落後將近 200ms。</p>
+<p><strong>Pattern 6：場景區分一致性要求</strong>（你的）</p>
+<p>同一份資料在不同使用場景可以有不同的一致性要求。區分清楚誰需要強一致、誰能接受最終一致，可以避免為了最嚴格的場景把所有場景都做複雜。</p>
+<hr>
+<h2 id="容錯設計層"><a href="#容錯設計層" class="headerlink" title="容錯設計層"></a>容錯設計層</h2><p><strong>Pattern 7：失敗要明顯</strong>（主管的）</p>
+<p>當狀態可以透過重算自我修復時，失敗應該產生「明顯錯誤」而不是「貌似正確」——因為明顯錯誤會被下一次正確覆蓋，貌似正確會一直留著。</p>
+<hr>
+<h2 id="啟動與恢復層"><a href="#啟動與恢復層" class="headerlink" title="啟動與恢復層"></a>啟動與恢復層</h2><p><strong>Pattern 8：就緒依賴而非順序依賴</strong>（你的）</p>
+<p>啟動順序不等於就緒順序。依賴的不是「對方的進程活著」，而是「對方的狀態可用」。需要有明確的就緒信號，而不是靠時間差假設對方好了。</p>
+<hr>
+<h2 id="效能與擴展層"><a href="#效能與擴展層" class="headerlink" title="效能與擴展層"></a>效能與擴展層</h2><p><strong>Pattern 9：輪詢週期是意圖不是保證</strong>（你的）</p>
+<p>輪詢週期的設定只是意圖，實際週期是「處理時間」和「設定週期」取大值。當處理時間超過設定週期，整個時序假設都要重新檢驗。</p>
+<p><strong>Pattern 10：分區鍵要和聚合維度對齊</strong>（你的）</p>
+<p>分區的維度應該和最終聚合的維度對齊。如果分區鍵和聚合鍵不同，分區帶來的並行性會被跨區查詢吃掉。</p>
+<p><strong>Pattern 11：分區是複雜度換吞吐量</strong>（你的）</p>
+<p>分區解決的是單點處理能力的上限，但會把原本不存在的「協調」和「容錯」問題引進來。分區不是免費的並行，是用複雜度換吞吐量。</p>
+<p><strong>Pattern 12：封閉分區是最乾淨的分區</strong>（你的）</p>
+<p>當處理邏輯和聚合邏輯都能封閉在同一個分區鍵內，分區就是單純的水平擴展，不需要引入分散式協調。</p>
+<hr>
+<p><em>這些 pattern 有一個隱含的順序：結構設計是前提認知，寫入與讀取一致性是核心設計，容錯與啟動是邊界處理，效能與擴展是規模應對。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://steven715.github.io">Steven Hsu</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://steven715.github.io/2026/01/20/pattern-language/">https://steven715.github.io/2026/01/20/pattern-language/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://steven715.github.io" target="_blank">Steven's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%BB%9F%E9%AB%94%E9%96%8B%E7%99%BC/">軟體開發</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/01/25/AI_Coding_principle/" title="AI Coding原則"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">AI Coding原則</div></div><div class="info-2"><div class="info-item-1">AI Coding原則 對話盡可能透過以下模式引導AI What: 專案是什麼、問題是什麼 (CLAUDE.md) Context: 當前的情境，有什麼限制 (Context, Rules) Who: 誰來做，專職任務的專家 (Agent) How: 具體怎麼做 (Skill)   需要做不同新任務，開啟一個新的對話，保護token數量  功能模塊 CLAUDE.md: 專案核心，讓AI理解這個專案 Rule: 讓AI一定要遵守的部分 Agents: 負責專職任務，例: 負責code review, 檢查coding style Sub-agent: AI實際開啟獨立對話來處理對應的專職任務   Skills: 參考手冊，指導AI該怎麼做的標準流程 Commands: 將一整套SOP指令封裝成一個指令 Hooks: 事件鉤子 Contexts: 情境模式，目前有三種可參考，dev、review、research  參考資料everything-claude-code </div></div></div></a><a class="pagination-related" href="/2026/01/18/ProblemFrames/" title="Problem Frames"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Problem Frames</div></div><div class="info-2"><div class="info-item-1">Problem Frames問題框架是一種有關軟體上的需求分析 (Problem frames is an approach to software requirements analysis.) Fundanmental philosophy底層邏輯是為了電腦軟體(computer software)收集需求(gathering requirements)並決定實作框架(creating specifications)  最好的需求分析是透過平行過程(through a process of parallel)，解藕用戶的需求(decomposition of user requirements) 用戶的需求只關心軟體與真實世界的關係(relationships in the read world)，翻譯成專業術語就是 application domain ，他們不關心軟體系統是如何組成或是有什麼接口等  Three sets of conceptual toolsTools for describing specific problemsConcepts for descri...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相關推薦</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/18/ProblemFrames/" title="Problem Frames"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-18</div><div class="info-item-2">Problem Frames</div></div><div class="info-2"><div class="info-item-1">Problem Frames問題框架是一種有關軟體上的需求分析 (Problem frames is an approach to software requirements analysis.) Fundanmental philosophy底層邏輯是為了電腦軟體(computer software)收集需求(gathering requirements)並決定實作框架(creating specifications)  最好的需求分析是透過平行過程(through a process of parallel)，解藕用戶的需求(decomposition of user requirements) 用戶的需求只關心軟體與真實世界的關係(relationships in the read world)，翻譯成專業術語就是 application domain ，他們不關心軟體系統是如何組成或是有什麼接口等  Three sets of conceptual toolsTools for describing specific problemsConcepts for descri...</div></div></div></a><a class="pagination-related" href="/2026/01/10/%E5%B0%8D%E8%BB%9F%E9%AB%94%E8%A8%AD%E8%A8%88%E7%9A%84%E5%8F%8D%E6%80%9D/" title="對軟體設計的反思"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-10</div><div class="info-item-2">對軟體設計的反思</div></div><div class="info-2"><div class="info-item-1">對軟體設計的反思為什麼這麼多人體認到設計是再指邊界的事，大家或是一些感覺很厲害的人(我主管、這個做PPT的人、一些軟體大師)都不約而同指出，設計、邊界、職責等這類能夠幫助我們在設計更好的往前走的部分。 但我想了解的是這之中是否還有不同的角度，能夠有一個施力點，也就是這些人是因為在他們的經驗過程中找到這樣一條路(邊界、職責)從而理出世界運行的一套規律，那我能否也從自己過往的經驗也理出另一套不一樣的規則呢? 我想了一下，我人生經驗中對於”過去塑造現在”這件事其實滿相信的，除非”痛到不行不然不會改變”，也就是”痛”是一個引爆點，我人生的某個痛，會再既有邏輯的作用下不斷增長，直到一個臨界點，他爆發了，才會發生改變，但變完又是下一個痛再蓄勢待發。 所以我從而發現我人生再走一個迴圈，每次似乎都有變好，但每次也都是痛苦的，這樣的人生理解，對應到軟體開發上，我認為本質邏輯是一致的，目標都是解決問題，只是方法跟形式。 我體認到現在聊的這些職責跟邊界某種程度是為了穩定而去扼殺變化性，我人生的那種方式是從不穩定去得到變化性，或許這就是一種好設計是因人而異的吧? </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Steven Hsu</div><div class="author-info-description">軟體開發者 | 終身學習者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">標籤</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分類</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/steven715" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Pattern-Language"><span class="toc-number">1.</span> <span class="toc-text">Pattern Language</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%A8%E6%8E%A7%E7%B3%BB%E7%B5%B1%E8%A8%AD%E8%A8%88%E5%8E%9F%E5%89%87"><span class="toc-number">1.1.</span> <span class="toc-text">風控系統設計原則</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B5%90%E6%A7%8B%E8%A8%AD%E8%A8%88%E5%B1%A4"><span class="toc-number">1.2.</span> <span class="toc-text">結構設計層</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%AB%E5%85%A5%E4%B8%80%E8%87%B4%E6%80%A7%E5%B1%A4"><span class="toc-number">1.3.</span> <span class="toc-text">寫入一致性層</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%80%E5%8F%96%E4%B8%80%E8%87%B4%E6%80%A7%E5%B1%A4"><span class="toc-number">1.4.</span> <span class="toc-text">讀取一致性層</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%B9%E9%8C%AF%E8%A8%AD%E8%A8%88%E5%B1%A4"><span class="toc-number">1.5.</span> <span class="toc-text">容錯設計層</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%95%9F%E5%8B%95%E8%88%87%E6%81%A2%E5%BE%A9%E5%B1%A4"><span class="toc-number">1.6.</span> <span class="toc-text">啟動與恢復層</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%88%E8%83%BD%E8%88%87%E6%93%B4%E5%B1%95%E5%B1%A4"><span class="toc-number">1.7.</span> <span class="toc-text">效能與擴展層</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/30/%E5%B0%8D%E5%AA%BD%E5%AA%BD%E7%9A%84%E8%A7%80%E5%AF%9F/" title="2026/1/25">2026/1/25</a><time datetime="2026-01-30T10:43:25.000Z" title="發表於 2026-01-30 18:43:25">2026-01-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/25/AI_Coding_principle/" title="AI Coding原則">AI Coding原則</a><time datetime="2026-01-25T06:05:13.000Z" title="發表於 2026-01-25 14:05:13">2026-01-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/20/pattern-language/" title="Pattern Language">Pattern Language</a><time datetime="2026-01-20T14:41:40.000Z" title="發表於 2026-01-20 22:41:40">2026-01-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/18/ProblemFrames/" title="Problem Frames">Problem Frames</a><time datetime="2026-01-18T14:29:19.000Z" title="發表於 2026-01-18 22:29:19">2026-01-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/18/%E9%A6%B4%E6%9C%8D_AI_%E5%AF%AB%E5%87%BA%E5%8F%AF%E7%B6%AD%E8%AD%B7%E7%9A%84%E7%B3%BB%E7%B5%B1_D2/" title="Day 2 1/18">Day 2 1/18</a><time datetime="2026-01-18T14:25:17.000Z" title="發表於 2026-01-18 22:25:17">2026-01-18</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2024 - 2026 By Steven Hsu</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

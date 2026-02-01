@@ -1,0 +1,246 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>資料事件同步機制 | Steven's Blog</title><meta name="author" content="Steven Hsu"><meta name="copyright" content="Steven Hsu"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="資料事件同步機制在公司進行了一個針對原有風控系統的重構，過程中遇到了對資料同步間的處理困難，像是用戶持倉的數據同時會被計算浮盈的物件、計算止盈止損的物件、計算風控規則的物件等多個物件所使用，所以想針對類似的場景做一個探討，理出一個解決框架，好讓未來處理上能有一個依據，而不是每次遇到都有點手足無措。 相關場景羅列 用戶持倉的數據同時會被計算浮盈的物件、計算止盈止損的物件、計算風控規則的物件等多個物件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="資料事件同步機制">
+<meta property="og:url" content="https://steven715.github.io/2025/11/02/%E8%B3%87%E6%96%99%E4%BA%8B%E4%BB%B6%E5%90%8C%E6%AD%A5%E6%A9%9F%E5%88%B6/index.html">
+<meta property="og:site_name" content="Steven&#39;s Blog">
+<meta property="og:description" content="資料事件同步機制在公司進行了一個針對原有風控系統的重構，過程中遇到了對資料同步間的處理困難，像是用戶持倉的數據同時會被計算浮盈的物件、計算止盈止損的物件、計算風控規則的物件等多個物件所使用，所以想針對類似的場景做一個探討，理出一個解決框架，好讓未來處理上能有一個依據，而不是每次遇到都有點手足無措。 相關場景羅列 用戶持倉的數據同時會被計算浮盈的物件、計算止盈止損的物件、計算風控規則的物件等多個物件">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://steven715.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2025-11-02T09:53:17.000Z">
+<meta property="article:modified_time" content="2026-01-30T11:48:53.875Z">
+<meta property="article:author" content="Steven Hsu">
+<meta property="article:tag" content="C++">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://steven715.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "資料事件同步機制",
+  "url": "https://steven715.github.io/2025/11/02/%E8%B3%87%E6%96%99%E4%BA%8B%E4%BB%B6%E5%90%8C%E6%AD%A5%E6%A9%9F%E5%88%B6/",
+  "image": "https://steven715.github.io/img/butterfly-icon.png",
+  "datePublished": "2025-11-02T09:53:17.000Z",
+  "dateModified": "2026-01-30T11:48:53.875Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Steven Hsu",
+      "url": "https://steven715.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://steven715.github.io/2025/11/02/%E8%B3%87%E6%96%99%E4%BA%8B%E4%BB%B6%E5%90%8C%E6%AD%A5%E6%A9%9F%E5%88%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '資料事件同步機制',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">標籤</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分類</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Steven's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">資料事件同步機制</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">資料事件同步機制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2025-11-02T09:53:17.000Z" title="發表於 2025-11-02 17:53:17">2025-11-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-01-30T11:48:53.875Z" title="更新於 2026-01-30 19:48:53">2026-01-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C/">C++</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="資料事件同步機制"><a href="#資料事件同步機制" class="headerlink" title="資料事件同步機制"></a>資料事件同步機制</h1><p>在公司進行了一個針對原有風控系統的重構，過程中遇到了對資料同步間的處理困難，像是用戶持倉的數據同時會被計算浮盈的物件、計算止盈止損的物件、計算風控規則的物件等多個物件所使用，所以想針對類似的場景做一個探討，理出一個解決框架，好讓未來處理上能有一個依據，而不是每次遇到都有點手足無措。</p>
+<h2 id="相關場景羅列"><a href="#相關場景羅列" class="headerlink" title="相關場景羅列"></a>相關場景羅列</h2><ol>
+<li>用戶持倉的數據同時會被計算浮盈的物件、計算止盈止損的物件、計算風控規則的物件等多個物件所使用，且用戶持倉物件還有可能因外部消息系統 (如: kafka) 的事件通知，而改變內部物件數據或是物件刪除。<ol>
+<li>依賴的物件會主動取得被依賴物件的數據，被依賴物件在過程中有可能異動。</li>
+</ol>
+</li>
+<li>行情數據會被止盈止損物件、計算浮盈物件、計算價格預警物件所使用，所以這些業務物件都會用輪詢的方式向行情物件取數據。<ol>
+<li>依賴的物件會主動取得被依賴物件的數據，被依賴物件在過程中有可能異動。</li>
+</ol>
+</li>
+<li>持倉物件上有產品物件的資訊，而產品物件會因外部消息系統的事件通知，而改變內部物件數據。<ol>
+<li>依賴的物件不會主動取得被依賴物件的數據，而被依賴物件在過程中有可能異動，但需要通知回去依賴的物件。</li>
+</ol>
+</li>
+</ol>
+<h2 id="解決方案的思路"><a href="#解決方案的思路" class="headerlink" title="解決方案的思路"></a>解決方案的思路</h2><ol>
+<li>可以發現當依賴物件主動取用被依賴物件數據的時候，不太需要關注資料的同步，因為每次取得的當下都是保證最新數據，所以這邊會是探討如何取資料能達到最優的性能，像是某一合約的行情數據有可能1秒內10次更新，行情物件更新數據的時候會將物件上鎖，這時取用行情的物件就會受到影響，且行情物件中會有多個合約，也就是有個合約列表，若行情處於頻繁更新，一秒3,4000多的數據，要讓依賴的物件不受影響的正常取用行情。<ol>
+<li>原方案是使用 <strong>map&lt;string, quote&gt;</strong> 這樣的數據結構存放最新行情，另外用一個 <strong>map&lt;string, list<quote>&gt;</strong> 存放行情區間列表，因為有物件會涉及到價格區間內的判斷，所以每一筆行情數據都需要捕捉到。</li>
+<li>探討方向會是確認是否有更好的資料結構，來應對這樣的場景，所以會先依原數據結構看當前性能瓶頸，再實作測試方案去比對性能差異。</li>
+</ol>
+</li>
+<li>依賴的物件不主動取得被依賴物件，所以被依賴物件需要再改動的時候，能有一個同步機制讓依賴物件知道資料更新。<ol>
+<li>原先的機制是被依賴物件會拆分成緩存類跟更新類，而依賴物件是主動取用被依賴物件數據的，不過他是向緩存物件要的資料，接收消息的更新類再更新完後，會透過物件函數的調用，將數據同步給緩存類。</li>
+<li>探討方向是看原先的機制，能否透過觀察者模式或是內部的eventbus相關機制來做優化，因為上面那種寫法實務上會覺得有點過度重複。</li>
+</ol>
+</li>
+</ol>
+<h2 id="鎖策略"><a href="#鎖策略" class="headerlink" title="鎖策略"></a>鎖策略</h2><p>資料同步機制大致有以下幾類，能夠針對場景下去混搭</p>
+<ol>
+<li>粗粒度鎖: 主要一個大鎖對共享資源進行互斥</li>
+<li>細粒度鎖: 針對共享資源下面各物件進行上鎖，在一些嵌套數據的情況下可以使用</li>
+<li>分片鎖: 細粒度鎖的變化，透過hash方式將共享資源分成不同區塊去上鎖，從而讓互斥場景降低</li>
+<li>序號鎖: 同分片鎖的邏輯，透過資源的標誌屬性(如:用戶ID、產品ID)，另外將資源上鎖，來減少鎖住的場景</li>
+<li>讀寫鎖: 透過共享讀、互斥寫的行為去適配具體場景，如讀多寫少，<strong>若讀者過多或過度頻繁可能出現寫者飢餓</strong>；可透過寫優先的機制，讓後續等待的讀者先等寫者執行</li>
+<li>RCU模式: 主要目的是讓讀者幾乎零阻塞讀取，所以寫數據的時候是透過先複製原資源，修改過後再使用指標方式將舊資料替換掉</li>
+<li>雙緩衝: 原理同 RCU模式，寫入的時候先以一個副本新建，之後透過寫互斥的方式，將原資源跟新副本做指標交換</li>
+</ol>
+<h2 id="環境設置"><a href="#環境設置" class="headerlink" title="環境設置"></a>環境設置</h2><p>這邊就使用 <code>ubuntu 22.04</code> 來進行實作，可以透過下面的 <code>dockerfile</code> 將環境建起來。</p>
+<figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># dockerFile</span></span><br><span class="line"><span class="keyword">FROM</span> ubuntu:<span class="number">22.04</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 確保 non-interactive 模式，避免安裝過程卡住</span></span><br><span class="line"><span class="keyword">ENV</span> DEBIAN_FRONTEND=noninteractive</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新並安裝必要工具</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> apt-get update &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    apt-get install -y --no-install-recommends \</span></span><br><span class="line"><span class="language-bash">        build-essential \</span></span><br><span class="line"><span class="language-bash">        git \</span></span><br><span class="line"><span class="language-bash">        clang-format \</span></span><br><span class="line"><span class="language-bash">        cppcheck \</span></span><br><span class="line"><span class="language-bash">        aspell \</span></span><br><span class="line"><span class="language-bash">        colordiff \</span></span><br><span class="line"><span class="language-bash">        vim \</span></span><br><span class="line"><span class="language-bash">        curl \</span></span><br><span class="line"><span class="language-bash">        gdb \</span></span><br><span class="line"><span class="language-bash">        htop \</span></span><br><span class="line"><span class="language-bash">        iproute2 \</span></span><br><span class="line"><span class="language-bash">        iputils-ping \</span></span><br><span class="line"><span class="language-bash">        valgrind &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    apt-get clean &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    <span class="built_in">rm</span> -rf /var/lib/apt/lists/*</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> apt-get update &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    apt-get install -y curl ca-certificates &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    <span class="built_in">cd</span> /usr/local/src &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    curl -LO https://github.com/Kitware/CMake/releases/download/v3.22.2/cmake-3.22.2-linux-x86_64.tar.gz &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    tar -xvf cmake-3.22.2-linux-x86_64.tar.gz &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    <span class="built_in">mv</span> cmake-3.22.2-linux-x86_64 /usr/local/cmake</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 設定 CMake 到 PATH（對所有 shell 生效）</span></span><br><span class="line"><span class="keyword">ENV</span> PATH=<span class="string">&quot;/usr/local/cmake/bin:$PATH&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安裝 vcpkg</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /opt</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> git <span class="built_in">clone</span> https://github.com/microsoft/vcpkg.git &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    <span class="built_in">cd</span> vcpkg &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    ./bootstrap-vcpkg.sh -disableMetrics</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 設定環境變數（方便後續使用）</span></span><br><span class="line"><span class="keyword">ENV</span> VCPKG_ROOT=/opt/vcpkg</span><br><span class="line"><span class="keyword">ENV</span> PATH=<span class="string">&quot;$&#123;VCPKG_ROOT&#125;:$&#123;PATH&#125;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="問題場景-輪詢場景下嵌套類型共享資料的同步處理"><a href="#問題場景-輪詢場景下嵌套類型共享資料的同步處理" class="headerlink" title="問題場景 - 輪詢場景下嵌套類型共享資料的同步處理"></a>問題場景 - 輪詢場景下嵌套類型共享資料的同步處理</h2><p>當前有N個業務物件，同時去讀一個資源物件裡的共享資源，資源物件會負責這個共享資源的寫，讀跟寫都以多執行緒的方式</p>
+<p>假設這N個業務物件平均以 10 ms去讀這這個共享資源，並且實際的寫是針對共享資源下面的map的element，可能會有新增、刪除、修改等行為，該element更新後還會對另一個統計的map做更改</p>
+<p>要基於這個假設下提供一個線程安全又高效的同步機制</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 共享資源性質定義</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">SharedObj</span></span><br><span class="line">&#123;</span><br><span class="line">   map&lt;string, realObj&gt; details;</span><br><span class="line">   map&lt;string, calObj&gt; totals;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">map&lt;string, sharedObj&gt; objects;</span><br></pre></td></tr></table></figure>
+
+<h2 id="解決方案"><a href="#解決方案" class="headerlink" title="解決方案"></a>解決方案</h2><ul>
+<li>透過讀寫鎖，來將共享讀跟互斥寫的兩個行為分開</li>
+<li>共享資源下的實際物件，也就是map中嵌套另一個map，內層map需要對外提供線程安全遍尋函數以及新增、修改、刪除等函數</li>
+</ul>
+<h2 id="問題場景-共享資料量大時避免阻塞"><a href="#問題場景-共享資料量大時避免阻塞" class="headerlink" title="問題場景 - 共享資料量大時避免阻塞"></a>問題場景 - 共享資料量大時避免阻塞</h2><p>當前有N個業務物件，同時去讀一個資源物件裡的共享資源，資源物件會負責這個共享資源的寫，讀跟寫都以多執行緒的方式</p>
+<p>假設這個資源物件每次寫入都是一個高I&#x2F;O的操作，如何讓業務物件的使用延遲降低</p>
+<h2 id="解決方案-1"><a href="#解決方案-1" class="headerlink" title="解決方案"></a>解決方案</h2><ul>
+<li>使用雙緩衝，讀資料跟寫資料</li>
+<li>使用指針操作返回</li>
+<li>寫資料跟讀資料交換只做指針交換</li>
+</ul>
+<h2 id="問題場景-事件驅動優化輪詢場景的觸發機制"><a href="#問題場景-事件驅動優化輪詢場景的觸發機制" class="headerlink" title="問題場景 - 事件驅動優化輪詢場景的觸發機制"></a>問題場景 - 事件驅動優化輪詢場景的觸發機制</h2><p><em>業務物件</em>會透過<strong>輪詢方式</strong>向<em>行情資源物件</em>取得所有合約最新行情，並向<em>倉位物件</em>與<em>資金物件</em>取得相關數據，計算<em>用戶角度</em>下<em>各主帳戶的倉位</em>情況(因最新價異動的浮盈)是否該處發風控規則。</p>
+<ul>
+<li>假設場景如下<ul>
+<li>輸入<ol>
+<li>行情: 合約維度</li>
+<li>倉位: 主帳戶維度、合約維度、用戶維度</li>
+<li>資金: 主帳戶維度、用戶維度</li>
+</ol>
+</li>
+<li>計算<ol>
+<li>資金: 主帳戶維度、用戶維度</li>
+</ol>
+</li>
+<li>結果<ol>
+<li>強平行為</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="解決方案-2"><a href="#解決方案-2" class="headerlink" title="解決方案"></a>解決方案</h2><ul>
+<li>事件驅動的核心在於區分出通知者(行情物件)與被通知者(風控業務物件)，明確雙方之間的溝通機制(主動或是被動通知)</li>
+<li>被通知者(風控業務物件)只要將業務行為(判斷風控規則)與觸發方式(輪詢方式、訂閱方式)做出解耦</li>
+<li>目標在於降低無效計算以增進性能</li>
+</ul>
+<h2 id="延伸議題"><a href="#延伸議題" class="headerlink" title="延伸議題"></a>延伸議題</h2><ul>
+<li>當用戶量龐大、倉位數量龐大、合約數量龐大，遇到高頻行情場景(股市開、收盤或是行情高峰期)，如何讓事件驅動能否比輪詢場景優秀</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://steven715.github.io">Steven Hsu</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://steven715.github.io/2025/11/02/%E8%B3%87%E6%96%99%E4%BA%8B%E4%BB%B6%E5%90%8C%E6%AD%A5%E6%A9%9F%E5%88%B6/">https://steven715.github.io/2025/11/02/%E8%B3%87%E6%96%99%E4%BA%8B%E4%BB%B6%E5%90%8C%E6%AD%A5%E6%A9%9F%E5%88%B6/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://steven715.github.io" target="_blank">Steven's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/C/">C++</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/12/14/%E5%B0%8D%E8%87%AA%E8%BA%AB%E7%9A%84%E8%A7%80%E5%AF%9F/" title="2025/10/26"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2025/10/26</div></div><div class="info-2"><div class="info-item-1">2025&#x2F;10&#x2F;26起因今天偶然看到網路短片大陸影星陳坤的採訪影片，裡面談到他對於人的觀察，每個人會做哪些事都是基於選擇的，一個人在越來越了解自己之後就會長出自己的自律與責任，讓我有感而發。 得到的體悟人做任何事都是基於自身的選擇，像我當初跟前女友仍處再一個冷靜期的時候，我選擇回去嫖妓，這件事我在做的時候，其實很內疚，因為我知道我選擇屈服於慾望。 我之後還做了第二、第三次，我開始給自己找藉口、找理由，為的就是說服自己沒有破戒，沒有在有女朋友的情況下去嫖妓，因為那個冷靜期對我來說是分手。 但我內心知道我選擇破戒，我內心的不安，其實直到我跟前女友講了之後，才開始好過，而因為我坦承了這件事，讓她選擇跟醫生再一起。 我漸漸知道了自己的選擇是需要去承擔他的後果，我逐漸認識到自己對自己的自律、責任應該長什麼樣子。 我開始意識到我需要做的事，是那些不會讓我良心不安，能讓自己踏實過生活，而不是透過自我催眠去逃避事實。 我想成為什麼樣的人，我就應該選擇做哪些事。 我想成為一個善良、正直、誠實、謙遜、友善、忠貞、踏實、盡責的人。 2025&#x2F;12&#x2F;14起因12&...</div></div></div></a><a class="pagination-related" href="/2025/10/26/CPU%E7%9F%A5%E8%AD%98/" title="CPU 知識"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">CPU 知識</div></div><div class="info-2"><div class="info-item-1">CPU 知識CPU 組成一個CPU在硬體層面是包含以下組件  Core 一個核心有的 Component  L1 Cache (per core) L2 Cache (per core) Registry File: 所有CPU執行運算用的暫存器集合(RAX, RBX, RSP, RIP, …) Excution Unit&#x2F; ALU: 作整數與浮點數計算 FPU, SIMD Unit: 做 SIMD &#x2F; AVX &#x2F; FMA 運算 Instructment Pipeline: CPU 解碼、執行、撰寫結果的流水線 Branch Predictor: 預測分支跳躍路徑，預先拉指令   多 Core 共享  L3 Cache (shared) Memory Controller + DRAM    Linux Scheduler在linxu中，Scheduler是一個在每個CPU core上持續執行的邏輯機制，負責  挑選下一個要執行的 Task(進程或線程) 保存與恢復 Context (Context Switch) 管理每個core上的runnabl...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Steven Hsu</div><div class="author-info-description">軟體開發者 | 終身學習者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">標籤</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分類</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/steven715" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%B3%87%E6%96%99%E4%BA%8B%E4%BB%B6%E5%90%8C%E6%AD%A5%E6%A9%9F%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">資料事件同步機制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%B8%E9%97%9C%E5%A0%B4%E6%99%AF%E7%BE%85%E5%88%97"><span class="toc-number">1.1.</span> <span class="toc-text">相關場景羅列</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88%E7%9A%84%E6%80%9D%E8%B7%AF"><span class="toc-number">1.2.</span> <span class="toc-text">解決方案的思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%8E%96%E7%AD%96%E7%95%A5"><span class="toc-number">1.3.</span> <span class="toc-text">鎖策略</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%92%B0%E5%A2%83%E8%A8%AD%E7%BD%AE"><span class="toc-number">1.4.</span> <span class="toc-text">環境設置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%95%8F%E9%A1%8C%E5%A0%B4%E6%99%AF-%E8%BC%AA%E8%A9%A2%E5%A0%B4%E6%99%AF%E4%B8%8B%E5%B5%8C%E5%A5%97%E9%A1%9E%E5%9E%8B%E5%85%B1%E4%BA%AB%E8%B3%87%E6%96%99%E7%9A%84%E5%90%8C%E6%AD%A5%E8%99%95%E7%90%86"><span class="toc-number">1.5.</span> <span class="toc-text">問題場景 - 輪詢場景下嵌套類型共享資料的同步處理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88"><span class="toc-number">1.6.</span> <span class="toc-text">解決方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%95%8F%E9%A1%8C%E5%A0%B4%E6%99%AF-%E5%85%B1%E4%BA%AB%E8%B3%87%E6%96%99%E9%87%8F%E5%A4%A7%E6%99%82%E9%81%BF%E5%85%8D%E9%98%BB%E5%A1%9E"><span class="toc-number">1.7.</span> <span class="toc-text">問題場景 - 共享資料量大時避免阻塞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88-1"><span class="toc-number">1.8.</span> <span class="toc-text">解決方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%95%8F%E9%A1%8C%E5%A0%B4%E6%99%AF-%E4%BA%8B%E4%BB%B6%E9%A9%85%E5%8B%95%E5%84%AA%E5%8C%96%E8%BC%AA%E8%A9%A2%E5%A0%B4%E6%99%AF%E7%9A%84%E8%A7%B8%E7%99%BC%E6%A9%9F%E5%88%B6"><span class="toc-number">1.9.</span> <span class="toc-text">問題場景 - 事件驅動優化輪詢場景的觸發機制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88-2"><span class="toc-number">1.10.</span> <span class="toc-text">解決方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E8%AD%B0%E9%A1%8C"><span class="toc-number">1.11.</span> <span class="toc-text">延伸議題</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/30/%E5%B0%8D%E5%AA%BD%E5%AA%BD%E7%9A%84%E8%A7%80%E5%AF%9F/" title="2026/1/25">2026/1/25</a><time datetime="2026-01-30T10:43:25.000Z" title="發表於 2026-01-30 18:43:25">2026-01-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/25/AI_Coding_principle/" title="AI Coding原則">AI Coding原則</a><time datetime="2026-01-25T06:05:13.000Z" title="發表於 2026-01-25 14:05:13">2026-01-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/20/pattern-language/" title="Pattern Language">Pattern Language</a><time datetime="2026-01-20T14:41:40.000Z" title="發表於 2026-01-20 22:41:40">2026-01-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/18/ProblemFrames/" title="Problem Frames">Problem Frames</a><time datetime="2026-01-18T14:29:19.000Z" title="發表於 2026-01-18 22:29:19">2026-01-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/18/%E9%A6%B4%E6%9C%8D_AI_%E5%AF%AB%E5%87%BA%E5%8F%AF%E7%B6%AD%E8%AD%B7%E7%9A%84%E7%B3%BB%E7%B5%B1_D2/" title="Day 2 1/18">Day 2 1/18</a><time datetime="2026-01-18T14:25:17.000Z" title="發表於 2026-01-18 22:25:17">2026-01-18</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2024 - 2026 By Steven Hsu</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

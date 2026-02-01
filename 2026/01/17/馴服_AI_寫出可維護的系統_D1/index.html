@@ -1,0 +1,243 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Day 1 1/17 | Steven's Blog</title><meta name="author" content="Steven Hsu"><meta name="copyright" content="Steven Hsu"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Day 1 1&#x2F;17軟體 single source of truth 認知的唯一真相  Source code Document   軟體開發本質還是 specfication driven development &#x3D;&gt; Document  因為客戶最終反應的是文件上說明的內容    AI Coding 挑戰如何讓不確定的生成過程，收斂為可驗證、可重現的結果? 收斂 (">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Day 1 1&#x2F;17">
+<meta property="og:url" content="https://steven715.github.io/2026/01/17/%E9%A6%B4%E6%9C%8D_AI_%E5%AF%AB%E5%87%BA%E5%8F%AF%E7%B6%AD%E8%AD%B7%E7%9A%84%E7%B3%BB%E7%B5%B1_D1/index.html">
+<meta property="og:site_name" content="Steven&#39;s Blog">
+<meta property="og:description" content="Day 1 1&#x2F;17軟體 single source of truth 認知的唯一真相  Source code Document   軟體開發本質還是 specfication driven development &#x3D;&gt; Document  因為客戶最終反應的是文件上說明的內容    AI Coding 挑戰如何讓不確定的生成過程，收斂為可驗證、可重現的結果? 收斂 (">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://steven715.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-01-17T12:52:25.000Z">
+<meta property="article:modified_time" content="2026-01-30T11:48:53.901Z">
+<meta property="article:author" content="Steven Hsu">
+<meta property="article:tag" content="學習心得">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://steven715.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Day 1 1/17",
+  "url": "https://steven715.github.io/2026/01/17/%E9%A6%B4%E6%9C%8D_AI_%E5%AF%AB%E5%87%BA%E5%8F%AF%E7%B6%AD%E8%AD%B7%E7%9A%84%E7%B3%BB%E7%B5%B1_D1/",
+  "image": "https://steven715.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-01-17T12:52:25.000Z",
+  "dateModified": "2026-01-30T11:48:53.901Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Steven Hsu",
+      "url": "https://steven715.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://steven715.github.io/2026/01/17/%E9%A6%B4%E6%9C%8D_AI_%E5%AF%AB%E5%87%BA%E5%8F%AF%E7%B6%AD%E8%AD%B7%E7%9A%84%E7%B3%BB%E7%B5%B1_D1/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Day 1 1/17',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">標籤</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分類</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Steven's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Day 1 1/17</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Day 1 1/17</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2026-01-17T12:52:25.000Z" title="發表於 2026-01-17 20:52:25">2026-01-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-01-30T11:48:53.901Z" title="更新於 2026-01-30 19:48:53">2026-01-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AD%B8%E7%BF%92%E5%BF%83%E5%BE%97/">學習心得</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Day-1-1-17"><a href="#Day-1-1-17" class="headerlink" title="Day 1 1&#x2F;17"></a>Day 1 1&#x2F;17</h1><h2 id="軟體-single-source-of-truth"><a href="#軟體-single-source-of-truth" class="headerlink" title="軟體 single source of truth"></a>軟體 single source of truth</h2><ul>
+<li><p>認知的唯一真相</p>
+<ul>
+<li>Source code</li>
+<li>Document</li>
+</ul>
+</li>
+<li><p>軟體開發本質還是 <strong>specfication driven development</strong> &#x3D;&gt; Document</p>
+<ul>
+<li>因為客戶最終反應的是文件上說明的內容</li>
+</ul>
+</li>
+</ul>
+<h2 id="AI-Coding-挑戰"><a href="#AI-Coding-挑戰" class="headerlink" title="AI Coding 挑戰"></a>AI Coding 挑戰</h2><p>如何讓不確定的生成過程，收斂為可驗證、可重現的結果?</p>
+<p><strong>收斂</strong> (determinism) 是關鍵 &#x3D;&gt; “How to document knowledge that AI can use it?”</p>
+<h3 id="最不信任AI的地方"><a href="#最不信任AI的地方" class="headerlink" title="最不信任AI的地方"></a>最不信任AI的地方</h3><ol>
+<li>Thread safe code</li>
+<li>Performance code</li>
+<li>Bussiness logic</li>
+<li>Sercurity issues</li>
+</ol>
+<h4 id="可解決部分"><a href="#可解決部分" class="headerlink" title="可解決部分"></a>可解決部分</h4><ol>
+<li>Bussiness logic<ol>
+<li>人寫完整的測試案例 (before LLM)</li>
+</ol>
+</li>
+<li>Sercurity<ol>
+<li>寫好規範的prompt，寫出AI不可觸碰的行為 (before LLM and after LLM)</li>
+</ol>
+</li>
+<li>Performance<ol>
+<li>先定義好SLA，讓AI執行相關的測試案例，來看是否有符合 (after LLM)</li>
+</ol>
+</li>
+</ol>
+<h4 id="不可解決部分"><a href="#不可解決部分" class="headerlink" title="不可解決部分"></a>不可解決部分</h4><ol>
+<li>Thread safe<ol>
+<li>如何讓AI寫出thread safe，透過語意一致性，人需要介入處理</li>
+</ol>
+</li>
+</ol>
+<h2 id="如何限制AI的non-determinism"><a href="#如何限制AI的non-determinism" class="headerlink" title="如何限制AI的non-determinism"></a>如何限制AI的non-determinism</h2><ul>
+<li>怎麼讓AI證明他是對的 ?</li>
+<li>怎麼知道他有完全照著prompt做 ?</li>
+<li>透過MCP，讓AI知道現況</li>
+</ul>
+<h2 id="以前的MDA，只寫spec會失敗的原因"><a href="#以前的MDA，只寫spec會失敗的原因" class="headerlink" title="以前的MDA，只寫spec會失敗的原因"></a>以前的MDA，只寫spec會失敗的原因</h2><p>表達能力來說，source code比DML還強，自然語言也是，會有歧異性</p>
+<h2 id="AI-Coding-中如何消除這些歧異性"><a href="#AI-Coding-中如何消除這些歧異性" class="headerlink" title="AI Coding 中如何消除這些歧異性"></a>AI Coding 中如何消除這些歧異性</h2><p>透過prompt以及不斷迭代每次的prompt，每次AI犯錯，讓AI紀錄該錯誤，並時不時提醒AI回顧那些犯錯紀錄</p>
+<h2 id="設計概念"><a href="#設計概念" class="headerlink" title="設計概念"></a>設計概念</h2><p>設計就是決定要設計什麼</p>
+<ul>
+<li>Form: 外觀，solution, product</li>
+<li>Context: 不是，solution所涵蓋的</li>
+<li>Force: 問題限制條件</li>
+</ul>
+<h2 id="Context類型"><a href="#Context類型" class="headerlink" title="Context類型"></a>Context類型</h2><ul>
+<li>先決定context，form就在其中</li>
+<li>如果可以窮舉context，form就不再是設計層面的問題，而主要成為實作上的技術問題</li>
+</ul>
+<h2 id="軟體開發的設計"><a href="#軟體開發的設計" class="headerlink" title="軟體開發的設計"></a>軟體開發的設計</h2><ul>
+<li>Code first (code is form)</li>
+<li>test first (TDD, test is context)</li>
+</ul>
+<h2 id="AI-Coding-要告訴-AI-哪些-context"><a href="#AI-Coding-要告訴-AI-哪些-context" class="headerlink" title="AI Coding 要告訴 AI 哪些 context"></a>AI Coding 要告訴 AI 哪些 context</h2><ul>
+<li>requirement</li>
+<li>驗收條件</li>
+<li>coding style</li>
+<li>glossary</li>
+<li>code architecture</li>
+</ul>
+<p>“.dev&#x2F;specs&#x2F;vo&#x2F;vo-spec.json 是 Value Object 規格，幫我依此生成 XXX.java 符合此風格，幫我寫一個vo-sub-agent.md prompt 達成這個任務” </p>
+<h2 id="AI-Coding-Precondition"><a href="#AI-Coding-Precondition" class="headerlink" title="AI Coding Precondition"></a>AI Coding Precondition</h2><ul>
+<li>團隊成熟度(規範、代碼風格)</li>
+<li>AI Coding的品質取決於寫code的人</li>
+</ul>
+<p><strong>軟體架構跟功能無關，主要解決non-functional的問題</strong></p>
+<ul>
+<li><strong>Problem 跟 Solution 在表達能力要匹配</strong><ul>
+<li>AI 拿 regular expression 去解決 language 級別的問題</li>
+</ul>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://steven715.github.io">Steven Hsu</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://steven715.github.io/2026/01/17/%E9%A6%B4%E6%9C%8D_AI_%E5%AF%AB%E5%87%BA%E5%8F%AF%E7%B6%AD%E8%AD%B7%E7%9A%84%E7%B3%BB%E7%B5%B1_D1/">https://steven715.github.io/2026/01/17/%E9%A6%B4%E6%9C%8D_AI_%E5%AF%AB%E5%87%BA%E5%8F%AF%E7%B6%AD%E8%AD%B7%E7%9A%84%E7%B3%BB%E7%B5%B1_D1/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://steven715.github.io" target="_blank">Steven's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%AD%B8%E7%BF%92%E5%BF%83%E5%BE%97/">學習心得</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/01/18/%E9%A6%B4%E6%9C%8D_AI_%E5%AF%AB%E5%87%BA%E5%8F%AF%E7%B6%AD%E8%AD%B7%E7%9A%84%E7%B3%BB%E7%B5%B1_D2/" title="Day 2 1/18"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Day 2 1/18</div></div><div class="info-2"><div class="info-item-1">Day 2 1&#x2F;18 給AI的prompt (json or yaml) 可以讓AI從source code去整理出來  如何將 Real World Problem 收斂 補領域知識 更知道要做什麼   找問題分析的方法 (like Problem frames) 更好的定義出邊界    如何增加測試的可靠性 Mutation Testing: 變異測試，透過將業務程式代碼寫錯，再跑測試案例，理論上測試案例要都失敗才合理。  Pattern Language 如何設計自己的 Pattern Language  需求 vs 規格 需求 Requirement: 世界應該變成什麼樣子 規格 Specification: 機器承諾的行為，用以實現該需求  如何在 MultiUser的系統去規範 Race Condition DDD的aggregate本身就有做同步性的議題  DDD 系統分三類 Generic: 通用類型，像是RBAC Supporting: 幫助核心的部分，報表系統 Core: 業務核心，考試系統本身  如何識別一個人的水平 聽他的問題，是否表達清晰，是否...</div></div></div></a><a class="pagination-related" href="/2026/01/10/%E5%B0%8D%E8%BB%9F%E9%AB%94%E8%A8%AD%E8%A8%88%E7%9A%84%E5%8F%8D%E6%80%9D/" title="對軟體設計的反思"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">對軟體設計的反思</div></div><div class="info-2"><div class="info-item-1">對軟體設計的反思為什麼這麼多人體認到設計是再指邊界的事，大家或是一些感覺很厲害的人(我主管、這個做PPT的人、一些軟體大師)都不約而同指出，設計、邊界、職責等這類能夠幫助我們在設計更好的往前走的部分。 但我想了解的是這之中是否還有不同的角度，能夠有一個施力點，也就是這些人是因為在他們的經驗過程中找到這樣一條路(邊界、職責)從而理出世界運行的一套規律，那我能否也從自己過往的經驗也理出另一套不一樣的規則呢? 我想了一下，我人生經驗中對於”過去塑造現在”這件事其實滿相信的，除非”痛到不行不然不會改變”，也就是”痛”是一個引爆點，我人生的某個痛，會再既有邏輯的作用下不斷增長，直到一個臨界點，他爆發了，才會發生改變，但變完又是下一個痛再蓄勢待發。 所以我從而發現我人生再走一個迴圈，每次似乎都有變好，但每次也都是痛苦的，這樣的人生理解，對應到軟體開發上，我認為本質邏輯是一致的，目標都是解決問題，只是方法跟形式。 我體認到現在聊的這些職責跟邊界某種程度是為了穩定而去扼殺變化性，我人生的那種方式是從不穩定去得到變化性，或許這就是一種好設計是因人而異的吧? </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相關推薦</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/18/%E9%A6%B4%E6%9C%8D_AI_%E5%AF%AB%E5%87%BA%E5%8F%AF%E7%B6%AD%E8%AD%B7%E7%9A%84%E7%B3%BB%E7%B5%B1_D2/" title="Day 2 1&#x2F;18"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-18</div><div class="info-item-2">Day 2 1&#x2F;18</div></div><div class="info-2"><div class="info-item-1">Day 2 1&#x2F;18 給AI的prompt (json or yaml) 可以讓AI從source code去整理出來  如何將 Real World Problem 收斂 補領域知識 更知道要做什麼   找問題分析的方法 (like Problem frames) 更好的定義出邊界    如何增加測試的可靠性 Mutation Testing: 變異測試，透過將業務程式代碼寫錯，再跑測試案例，理論上測試案例要都失敗才合理。  Pattern Language 如何設計自己的 Pattern Language  需求 vs 規格 需求 Requirement: 世界應該變成什麼樣子 規格 Specification: 機器承諾的行為，用以實現該需求  如何在 MultiUser的系統去規範 Race Condition DDD的aggregate本身就有做同步性的議題  DDD 系統分三類 Generic: 通用類型，像是RBAC Supporting: 幫助核心的部分，報表系統 Core: 業務核心，考試系統本身  如何識別一個人的水平 聽他的問題，是否表達清晰，是否...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Steven Hsu</div><div class="author-info-description">軟體開發者 | 終身學習者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">標籤</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分類</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/steven715" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Day-1-1-17"><span class="toc-number">1.</span> <span class="toc-text">Day 1 1&#x2F;17</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BB%9F%E9%AB%94-single-source-of-truth"><span class="toc-number">1.1.</span> <span class="toc-text">軟體 single source of truth</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AI-Coding-%E6%8C%91%E6%88%B0"><span class="toc-number">1.2.</span> <span class="toc-text">AI Coding 挑戰</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E4%B8%8D%E4%BF%A1%E4%BB%BBAI%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="toc-number">1.2.1.</span> <span class="toc-text">最不信任AI的地方</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%AF%E8%A7%A3%E6%B1%BA%E9%83%A8%E5%88%86"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">可解決部分</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8D%E5%8F%AF%E8%A7%A3%E6%B1%BA%E9%83%A8%E5%88%86"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">不可解決部分</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%99%90%E5%88%B6AI%E7%9A%84non-determinism"><span class="toc-number">1.3.</span> <span class="toc-text">如何限制AI的non-determinism</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A5%E5%89%8D%E7%9A%84MDA%EF%BC%8C%E5%8F%AA%E5%AF%ABspec%E6%9C%83%E5%A4%B1%E6%95%97%E7%9A%84%E5%8E%9F%E5%9B%A0"><span class="toc-number">1.4.</span> <span class="toc-text">以前的MDA，只寫spec會失敗的原因</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AI-Coding-%E4%B8%AD%E5%A6%82%E4%BD%95%E6%B6%88%E9%99%A4%E9%80%99%E4%BA%9B%E6%AD%A7%E7%95%B0%E6%80%A7"><span class="toc-number">1.5.</span> <span class="toc-text">AI Coding 中如何消除這些歧異性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A8%AD%E8%A8%88%E6%A6%82%E5%BF%B5"><span class="toc-number">1.6.</span> <span class="toc-text">設計概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Context%E9%A1%9E%E5%9E%8B"><span class="toc-number">1.7.</span> <span class="toc-text">Context類型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BB%9F%E9%AB%94%E9%96%8B%E7%99%BC%E7%9A%84%E8%A8%AD%E8%A8%88"><span class="toc-number">1.8.</span> <span class="toc-text">軟體開發的設計</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AI-Coding-%E8%A6%81%E5%91%8A%E8%A8%B4-AI-%E5%93%AA%E4%BA%9B-context"><span class="toc-number">1.9.</span> <span class="toc-text">AI Coding 要告訴 AI 哪些 context</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AI-Coding-Precondition"><span class="toc-number">1.10.</span> <span class="toc-text">AI Coding Precondition</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/30/%E5%B0%8D%E5%AA%BD%E5%AA%BD%E7%9A%84%E8%A7%80%E5%AF%9F/" title="2026/1/25">2026/1/25</a><time datetime="2026-01-30T10:43:25.000Z" title="發表於 2026-01-30 18:43:25">2026-01-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/25/AI_Coding_principle/" title="AI Coding原則">AI Coding原則</a><time datetime="2026-01-25T06:05:13.000Z" title="發表於 2026-01-25 14:05:13">2026-01-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/20/pattern-language/" title="Pattern Language">Pattern Language</a><time datetime="2026-01-20T14:41:40.000Z" title="發表於 2026-01-20 22:41:40">2026-01-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/18/ProblemFrames/" title="Problem Frames">Problem Frames</a><time datetime="2026-01-18T14:29:19.000Z" title="發表於 2026-01-18 22:29:19">2026-01-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/18/%E9%A6%B4%E6%9C%8D_AI_%E5%AF%AB%E5%87%BA%E5%8F%AF%E7%B6%AD%E8%AD%B7%E7%9A%84%E7%B3%BB%E7%B5%B1_D2/" title="Day 2 1/18">Day 2 1/18</a><time datetime="2026-01-18T14:25:17.000Z" title="發表於 2026-01-18 22:25:17">2026-01-18</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2024 - 2026 By Steven Hsu</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
